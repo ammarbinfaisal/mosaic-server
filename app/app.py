@@ -96,6 +96,7 @@ def get_user(user_id):
     user_schema = schema.UserSchema()
     return jsonify(user_schema.dump(user)), 200
 
+
 @app.route("/u/<string:username>/info", methods=["GET"])
 def get_user_info(username):
     user = database.session.query(db.User).filter_by(username=username).first()
@@ -103,6 +104,7 @@ def get_user_info(username):
         return "User not found", 404
     user_schema = schema.UserSchema()
     return jsonify(user_schema.dump(user)), 200
+
 
 @app.route("/u/<int:user_id>/posts/<int:pagenum>", methods=["GET"])
 def get_user_posts(user_id, pagenum):
@@ -421,6 +423,7 @@ def get_comment_replies(comment_id):
     comments_schema = schema.CommentSchema(many=True)
     return jsonify(comments_schema.dump(replies)), 200
 
+
 @app.route("/cm/<int:comment_id>/parent", methods=["GET"])
 def get_comment_parent(comment_id):
     comment = database.session.query(db.Comment).get(comment_id)
@@ -428,13 +431,15 @@ def get_comment_parent(comment_id):
         return "Comment not found", 404
     parent = database.session.query(db.Comment).get(comment.parent_comment)
     comment_schema = schema.CommentSchema()
-    post = database.session.query(db.Post).get(parent.post_id)
+    post = database.session.query(db.Post).filter_by(
+        id=comment.post_id).first()
     post_schema = schema.PostSchema()
-    
+
     return {
         "comment": comment_schema.dump(parent) if parent else None,
         "post": post_schema.dump(post)
     }, 200
+
 
 @app.route("/cm/<int:comment_id>/upvote", methods=["POST"])
 @authorize
@@ -518,8 +523,9 @@ def vote_comment(comment_id, user=None):
 @app.route("/me/info", methods=["GET"])
 @authorize
 def get_me(user=None):
+    u = database.session.query(db.User).filter_by(id=user["id"]).first()
     user_schema = schema.UserSchema()
-    return jsonify(user_schema.dump(user)), 200
+    return jsonify(user_schema.dump(u)), 200
 
 
 @app.route("/me/update", methods=["POST"])
