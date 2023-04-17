@@ -207,7 +207,6 @@ def upvote_post(post_id, user=None):
             database.session.commit()
     else:
         upvote = db.Vote(user_id=user["id"], post_id=post_id, upvote=True)
-        post = database.session.query(db.Post).filter_by(id=post_id).first()
         post.upvotes += 1
         database.session.add(post)
         database.session.add(upvote)
@@ -237,11 +236,10 @@ def downvote_post(post_id, user=None):
             database.session.add(post)
             database.session.commit()
     else:
-        upvote = db.Vote(user_id=user["id"], post_id=post_id, upvote=True)
-        post = database.session.query(db.Post).filter_by(id=post_id).first()
+        downvote = db.Vote(user_id=user["id"], post_id=post_id, upvote=False)
         post.downvotes += 1
         database.session.add(post)
-        database.session.add(upvote)
+        database.session.add(downvote)
         database.session.commit()
     return '{"status": "OK"}', 200
 
@@ -478,8 +476,8 @@ def downvote_comment(comment_id, user=None):
         comment_id=comment_id, user_id=user["id"]).first()
     if vote is None:
         votee = db.CommentVote(
-            comment_id=comment_id, user_id=user["id"], is_upvote=True)
-        comment.upvotes += 1
+            comment_id=comment_id, user_id=user["id"], is_upvote=False)
+        comment.downvotes += 1
         database.session.add(votee)
         database.session.add(comment)
         database.session.commit()
