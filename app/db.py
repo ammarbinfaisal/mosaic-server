@@ -3,16 +3,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker,scoped_session, relationship
 from sqlalchemy.sql import func
 
-DATABASE_URL = "mysql+pymysql://root:p@localhost:3306/cop"
-
-engine = create_engine(
-    DATABASE_URL,
-)
-
-session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Session = scoped_session(session_factory)
-session = Session()
-
 Base = declarative_base()
 
 
@@ -208,27 +198,3 @@ class View(Base):
         "posts.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", foreign_keys="View.user_id")
     post = relationship("Post", foreign_keys="View.post_id")
-
-
-def migrate():
-    tables = [
-        User,
-        Community,
-        Post,
-        Vote,
-        Comment,
-        SubscribedCommunity,
-        SavedPost,
-        SavedComment,
-        Moderator,
-        History,
-        FollowUser,
-        CommentVote,
-        BlockedUser,
-        View
-    ]
-    for table in tables:
-        table.__table__.create(bind=engine, checkfirst=True)
-
-
-migrate()
