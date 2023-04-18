@@ -1,13 +1,15 @@
 from functools import wraps
+from random import randint
 import os
 
 
 from bcrypt import hashpw, gensalt, checkpw
-from flask import Flask, abort, jsonify, request
+from flask import Flask, abort, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import ValidationError
 from jwt import encode, decode
+from PIL import Image
 
 import db
 import schema
@@ -15,12 +17,25 @@ import schema
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'app/uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 database = SQLAlchemy()
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:p@localhost:3306/cop"
 database.init_app(app)
 
 secret = os.environ.get("SECRET")
+
+# cron = Scheduler(daemon=True)
+# cron.start()
+
+# atexit.register(lambda: cron.shutdown(wait=False))
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in set(
+               ['png', 'jpg', 'jpeg', 'gif'])
 
 # ----------------------------
 # SCHEMA
@@ -44,6 +59,47 @@ def authorize(f):
         return f(user=user, *args, **kws)
     return decorated_function
 
+
+def upload_file(f):
+    @wraps(f)
+    def decorated_function(*args, **kws):
+        if 'file' not in request.files:
+            print('No file part')
+            abort(400)
+        file = request.files['file']
+        if file.filename == '':
+            print('No selected file')
+            abort(400)
+        if file and allowed_file(file.filename):
+            im = Image.open(file)
+            im.thumbnail((500, 500))
+            filename = rand_str() + '.' + im.format.lower()
+            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            im.save(path, im.format)
+            return f(filename=filename, *args, **kws)
+
+    return decorated_function
+
+# delete those files which are not used
+
+
+def delete_old_file():
+    dps = database.session.query(db.User.display_pic).all()
+    cpics = database.session.query(db.Community.display_pic).all()
+    alll = os.listdir(app.config['UPLOAD_FOLDER'])
+    used = set([x[0] for x in dps] + [x[0] for x in cpics])
+    for f in alll:
+        if f not in used:
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], f))
+
+
+def rand_str(len=16):
+    return ''.join([chr(randint(97, 122)) for i in range(len)])
+
+# regularly call this function to delete old files
+# @cron.scheduled_job('interval', minutes=10)
+# def timed_job():
+#     delete_old_file()
 
 # ----------------------------
 # USERS
@@ -362,6 +418,22 @@ def leave_community(user=None):
     return '{"status": "OK"}', 200
 
 
+@app.route("/c/pic", methods=["PUT"])
+@authorize
+@upload_file
+def update_community_pic(user=None, filename=None):
+    b = request.get_json()
+    try:
+        schema.update_community_pic_schema.load(b)
+    except ValidationError as err:
+        return err.messages, 400
+    community = database.session.query(db.Community).filter_by(
+        id=b["id"]).first()
+    community.display_pic = f"/static/{filename}"
+    database.session.commit()
+    return '{"status": "OK"}', 200
+
+
 @app.route("/c/update", methods=["POST"])
 @authorize
 def update_community(user=None):
@@ -563,6 +635,41 @@ def get_me_feed(user=None):
         db.Post.community_id.in_([c.id for c in communities])).order_by(db.Post.id.desc()).limit(20).all()
     posts_schema = schema.PostSchema(many=True)
     return jsonify(posts_schema.dump(posts)), 200
+
+
+@app.route("/me/pic", methods=["POST"])
+@authorize
+@upload_file
+def upload_dp(user=None, filename=None):
+    u = database.session.query(db.User).filter_by(id=user["id"]).first()
+    u.display_pic = f"/static/{filename}"
+    database.session.commit()
+    return '{"status": "OK"}', 200
+
+
+@app.route("/me/password", methods=["POST"])
+@authorize
+def change_password(user=None):
+    b = request.get_json()
+    try:
+        schema.password_change_schema.load(b)
+    except ValidationError as err:
+        return err.messages, 400
+    u = database.session.query(db.User).filter_by(id=user["id"]).first()
+    if not checkpw(b["old_password"].encode("utf-8"), u.password.encode("utf-8")):
+        return {"error": "Incorrect password"}, 400
+    u.password = hashpw(b["new_password"].encode("utf-8"), gensalt())
+    database.session.commit()
+    return '{"status": "OK"}', 200
+
+# ----------------------------
+# STATIC
+# ----------------------------
+
+
+@app.route("/static/<string:path>", methods=["GET"])
+def send_static(path):
+    return send_from_directory("uploads", path)
 
 
 if __name__ == "__main__":

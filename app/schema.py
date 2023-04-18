@@ -115,6 +115,9 @@ class UpdateMeSchema(Schema):
 class JoinCommunitySchema(Schema):
     id = fields.Int(required=True)
 
+class PasswordChangeSchema(Schema):
+    old_password = fields.Str(required=True)
+    new_password = fields.Str(required=True)
 
 login_schema = LoginSchema()
 register_schema = RegisterSchema()
@@ -125,3 +128,4 @@ update_community_schema = UpdateCommunitySchema()
 update_post_schema = UpdatePostSchema()
 update_comment_schema = UpdateCommentSchema()
 join_community_schema = JoinCommunitySchema()
+password_change_schema = PasswordChangeSchema()
