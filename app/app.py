@@ -7,6 +7,7 @@ from bcrypt import hashpw, gensalt, checkpw
 from flask import Flask, abort, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 from marshmallow import ValidationError
 from jwt import encode, decode
 from PIL import Image
@@ -687,8 +688,7 @@ def search_posts():
     if not query:
         return {"error": "bad search"}, 400
     query = f"%{query}%"
-    posts = database.session.query(db.Post).filter(
-        db.Post.title.like(query)).all()
+    posts = database.session.query(db.Post).filter(or_(db.Post.title.like(query), db.Post.content.like(query))).all()
     post_schema = schema.PostSchema(many=True)
     comments = database.session.query(db.Comment).filter(
         db.Comment.content.like(query)).all()
