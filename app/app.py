@@ -662,6 +662,42 @@ def change_password(user=None):
     database.session.commit()
     return '{"status": "OK"}', 200
 
+
+@app.route("/search", methods=["GET"])
+def search():
+    query = request.args.get("q")
+    if not query:
+        return {"error": "bad search"}, 400
+    query = f"%{query}%"
+    users = database.session.query(db.User).filter(
+        db.User.username.like(query)).all()
+    communities = database.session.query(db.Community).filter(
+        db.Community.name.like(query)).all()
+    user_schema = schema.UserSchema(many=True)
+    community_schema = schema.CommunitySchema(many=True)
+    return jsonify({
+        "users": user_schema.dump(users),
+        "communities": community_schema.dump(communities),
+    }), 200
+
+
+@app.route("/search-posts", methods=["GET"])
+def search_posts():
+    query = request.args.get("q")
+    if not query:
+        return {"error": "bad search"}, 400
+    query = f"%{query}%"
+    posts = database.session.query(db.Post).filter(
+        db.Post.title.like(query)).all()
+    post_schema = schema.PostSchema(many=True)
+    comments = database.session.query(db.Comment).filter(
+        db.Comment.content.like(query)).all()
+    comment_schema = schema.CommentSchema(many=True)
+    return jsonify({
+        "posts": post_schema.dump(posts),
+        "comments": comment_schema.dump(comments),
+    }), 200
+
 # ----------------------------
 # STATIC
 # ----------------------------
