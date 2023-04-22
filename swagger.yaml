@@ -1,0 +1,1905 @@
+openapi: 3.0.3
+info:
+  title: Mosaic API
+  description: "Mosaic will be a social media platform designed for individuals to\
+    \ engage in discussions and share content in a community-driven environment. Similar\
+    \ to Reddit, Mosaic will allow users to create and join communities that are focused\
+    \ on specific topics of interest. As the name suggests, our aim is to bring together\
+    \ a diverse community made up of different pieces that come together to create\
+    \ a beautiful and meaningful whole."
+  termsOfService: http://link_to_mosaic/terms/
+  contact:
+    email: apiteam@mosaic.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: "1.0"
+externalDocs:
+  description: Find out more about Mosaic
+  url: http://link_to_mosaic.com
+servers:
+- url: https://link_to_mosaic/api/v3
+tags:
+- name: me
+  description: Operations about self
+- name: communities
+  description: Operations about Communities
+- name: moderators
+  description: Operations about Moderators
+- name: posts
+  description: Operations about Posts
+- name: votes
+- name: user
+  description: Operations about User
+- name: comments
+  description: Operations about Comments
+paths:
+  /me/follow:
+    get:
+      tags:
+      - me
+      summary: Get following list
+      description: ""
+      operationId: get_following_list
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                x-content-type: application/json
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/follow/{username}:
+    post:
+      tags:
+      - me
+      summary: Follow a user
+      description: This can only be done by the logged in user.
+      operationId: follow_user
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+    delete:
+      tags:
+      - me
+      summary: Delete a followed user
+      description: This can only be done by the logged in user.
+      operationId: delete_follow_user
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/block:
+    get:
+      tags:
+      - me
+      summary: Get blocked list
+      description: ""
+      operationId: get_blocked_list
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                x-content-type: application/json
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/block/{username}:
+    post:
+      tags:
+      - me
+      summary: Block a user
+      description: This can only be done by the logged in user.
+      operationId: block_user
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+    delete:
+      tags:
+      - me
+      summary: Unblock a user
+      description: This can only be done by the logged in user.
+      operationId: unblock_user
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/savedPosts:
+    get:
+      tags:
+      - me
+      summary: Get saved posts list
+      description: ""
+      operationId: get_saved_posts_list
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+                x-content-type: application/json
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/savedPosts/{postID}:
+    put:
+      tags:
+      - me
+      summary: Saves the post
+      description: This can only be done by the logged in user.
+      operationId: save_post
+      parameters:
+      - name: postID
+        in: path
+        description: The ID of the post
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          description: Invalid post id supplied
+        "404":
+          description: Post not found
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+    delete:
+      tags:
+      - me
+      summary: Unsaves the post
+      description: This can only be done by the logged in user.
+      operationId: unsave_post
+      parameters:
+      - name: postID
+        in: path
+        description: The ID of the post
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          description: Invalid post id supplied
+        "404":
+          description: Post not found
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/savedComments:
+    get:
+      tags:
+      - me
+      summary: Get saved comments list
+      description: ""
+      operationId: get_saved_comments_list
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+                x-content-type: application/json
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/savedComments/{commentID}:
+    put:
+      tags:
+      - me
+      summary: Saves the comment
+      description: This can only be done by the logged in user.
+      operationId: save_comment
+      parameters:
+      - name: commentID
+        in: path
+        description: The ID of the comment
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          description: Invalid comment id supplied
+        "404":
+          description: comment not found
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+    delete:
+      tags:
+      - me
+      summary: Unsaves the comment
+      description: This can only be done by the logged in user.
+      operationId: unsave_comment
+      parameters:
+      - name: commentID
+        in: path
+        description: The ID of the comment
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          description: Invalid Comment id supplied
+        "404":
+          description: Comment not found
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/history:
+    get:
+      tags:
+      - me
+      summary: Get history
+      description: ""
+      operationId: get_history
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+                x-content-type: application/json
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/history/clear:
+    get:
+      tags:
+      - me
+      summary: Clear history
+      description: ""
+      operationId: clear_history
+      responses:
+        "200":
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /me/subscribedCommunities:
+    get:
+      tags:
+      - me
+      summary: Get subscribed communities
+      description: ""
+      operationId: get_subscribed_communities
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+                x-content-type: application/json
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.me_controller
+  /c/create:
+    post:
+      tags:
+      - communities
+      summary: Create community
+      description: This can only be done by the logged in user.
+      operationId: create_community
+      requestBody:
+        description: Created community object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Communities'
+        required: true
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Communities'
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.communities_controller
+  /c/{community_name}:
+    get:
+      tags:
+      - communities
+      summary: Get community by name
+      description: ""
+      operationId: get_community_by_name
+      parameters:
+      - name: community_name
+        in: path
+        description: 'The name of the community. Use askMosaic for testing. '
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Communities'
+        "400":
+          description: Invalid community name supplied
+        "404":
+          description: Community not found
+      x-openapi-router-controller: swagger_server.controllers.communities_controller
+    put:
+      tags:
+      - communities
+      summary: Update community
+      description: This can only be done by the logged in user who is either an admin
+        or moderator of the community.
+      operationId: update_community
+      parameters:
+      - name: community_name
+        in: path
+        description: 'The name of the community. Use askMosaic for testing. '
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Update an existent community
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.communities_controller
+    delete:
+      tags:
+      - communities
+      summary: Delete community
+      description: This can only be done by the logged in user who is the admin of
+        the community.
+      operationId: delete_community
+      parameters:
+      - name: community_name
+        in: path
+        description: 'The name of the community. Use askMosaic for testing. '
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "400":
+          description: Invalid community name supplied
+        "404":
+          description: Community not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.communities_controller
+  /c/{community_name}/mod:
+    get:
+      tags:
+      - moderators
+      summary: Get mods by community
+      description: ""
+      operationId: get_moderators_by_community_name
+      parameters:
+      - name: community_name
+        in: path
+        description: 'The name of the community. Use askMosaic for testing. '
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                x-content-type: application/json
+        "400":
+          description: Invalid community name supplied
+        "404":
+          description: Community not found
+      x-openapi-router-controller: swagger_server.controllers.moderators_controller
+  /c/{community_name}/mod/{username}:
+    post:
+      tags:
+      - moderators
+      summary: Add a new Moderator
+      description: This can only be done by the logged in user who is the Admin of
+        the Community.
+      operationId: add_mod
+      parameters:
+      - name: community_name
+        in: path
+        description: 'The name of the community. Use askMosaic for testing. '
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Invalid Community name or Username supplied
+        "404":
+          description: Community or User not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.moderators_controller
+    delete:
+      tags:
+      - moderators
+      summary: Remove as Moderator
+      description: This can only be done by the logged in user who is the Admin of
+        the Community.
+      operationId: remove_mod
+      parameters:
+      - name: community_name
+        in: path
+        description: 'The name of the community. Use askMosaic for testing. '
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "400":
+          description: Invalid community or user name supplied
+        "404":
+          description: Community or User not found
+      security:
+      - user_auth:
+        - read:user
+        - write:user
+      x-openapi-router-controller: swagger_server.controllers.moderators_controller
+  /p/create:
+    post:
+      tags:
+      - posts
+      summary: Create Post
+      description: This can only be done by the logged in user.
+      operationId: create_post
+      requestBody:
+        description: Created posted object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Posts'
+        required: true
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Posts'
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.posts_controller
+  /p/{postID}:
+    get:
+      tags:
+      - posts
+      summary: Get post by id
+      description: ""
+      operationId: get_post_by_id
+      parameters:
+      - name: postID
+        in: path
+        description: The ID of the post
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Posts'
+        "400":
+          description: Invalid post id supplied
+        "404":
+          description: Post not found
+      x-openapi-router-controller: swagger_server.controllers.posts_controller
+    put:
+      tags:
+      - posts
+      summary: Update post
+      description: This can only be done by the logged in user who is the creator
+        of the post.
+      operationId: update_post
+      parameters:
+      - name: postID
+        in: path
+        description: The ID of the post
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: Update an existent post
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Posts'
+      responses:
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.posts_controller
+    delete:
+      tags:
+      - posts
+      summary: Delete post
+      description: This can only be done by the logged in user who created the post
+        or the one who is either a moderator or admin of the community.
+      operationId: delete_post
+      parameters:
+      - name: postID
+        in: path
+        description: The ID of the post
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          description: Invalid post id supplied
+        "404":
+          description: Post not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.posts_controller
+  /v/{postID}/{username}:
+    get:
+      tags:
+      - votes
+      summary: Get post vote by id
+      description: ""
+      operationId: get_vote_by_id
+      parameters:
+      - name: postID
+        in: path
+        description: The ID of the post
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Votes'
+        "400":
+          description: Invalid post id or user name supplied
+        "404":
+          description: Post or user not found
+      x-openapi-router-controller: swagger_server.controllers.votes_controller
+    put:
+      tags:
+      - votes
+      summary: Update vote
+      description: This can only be done by the logged in user.
+      operationId: update_post_vote_by_id
+      parameters:
+      - name: postID
+        in: path
+        description: The ID of the post
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Update an existent vote
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Votes'
+      responses:
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.votes_controller
+    delete:
+      tags:
+      - votes
+      summary: Delete post vote
+      description: This can only be done by the logged in user.
+      operationId: delete_post_vote
+      parameters:
+      - name: postID
+        in: path
+        description: The ID of the post
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "400":
+          description: Invalid post id or username supplied
+        "404":
+          description: Post or user not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.votes_controller
+  /v/{commentID}/{username}:
+    get:
+      tags:
+      - votes
+      summary: Get comment vote by id
+      description: ""
+      operationId: get_vote_by_comment_id
+      parameters:
+      - name: commentID
+        in: path
+        description: The ID of the comment
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentVotes'
+        "400":
+          description: Invalid Comment id or user name supplied
+        "404":
+          description: Comment or user not found
+      x-openapi-router-controller: swagger_server.controllers.votes_controller
+    put:
+      tags:
+      - votes
+      summary: Update vote
+      description: This can only be done by the logged in user.
+      operationId: update_comment_vote_by_id
+      parameters:
+      - name: commentID
+        in: path
+        description: The ID of the comment
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Update an existent vote
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentVotes'
+      responses:
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.votes_controller
+    delete:
+      tags:
+      - votes
+      summary: Delete Comment vote
+      description: This can only be done by the logged in user.
+      operationId: delete_comment_vote
+      parameters:
+      - name: commentID
+        in: path
+        description: The ID of the comment
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "400":
+          description: Invalid post id or username supplied
+        "404":
+          description: Post or user not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.votes_controller
+  /u/create:
+    post:
+      tags:
+      - user
+      summary: Create user
+      description: This can only be done by the logged in user.
+      operationId: create_user
+      requestBody:
+        description: Created user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      x-openapi-router-controller: swagger_server.controllers.user_controller
+  /u/login:
+    post:
+      tags:
+      - user
+      summary: Logs user into the system
+      description: ""
+      operationId: login_user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/u_login_body'
+        required: true
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+                x-content-type: application/json
+        "400":
+          description: Invalid username/password supplied
+      x-openapi-router-controller: swagger_server.controllers.user_controller
+  /u/login/forgotPassword:
+    get:
+      tags:
+      - user
+      summary: Sends recovery email
+      description: ""
+      operationId: forgot_password
+      parameters:
+      - name: username
+        in: query
+        description: The user name for login
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: email
+        in: query
+        description: The email for login
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+                x-content-type: application/json
+        "400":
+          description: Invalid username/email supplied
+      x-openapi-router-controller: swagger_server.controllers.user_controller
+  /u/{username}:
+    get:
+      tags:
+      - user
+      summary: Get user by user name
+      description: ""
+      operationId: get_user_by_name
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+      x-openapi-router-controller: swagger_server.controllers.user_controller
+    put:
+      tags:
+      - user
+      summary: Update user
+      description: This can only be done by the logged in user.
+      operationId: update_user
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Update an existent user in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.user_controller
+    delete:
+      tags:
+      - user
+      summary: Delete user
+      description: This can only be done by the logged in user.
+      operationId: delete_user
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.user_controller
+  /u/{username}/notif:
+    get:
+      tags:
+      - user
+      summary: Get user notifications
+      description: ""
+      operationId: get_user_notifications
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notifications'
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.user_controller
+  /u/{username}/pref:
+    get:
+      tags:
+      - user
+      summary: Get user preferences
+      description: ""
+      operationId: get_user_preferences
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preferences'
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.user_controller
+    put:
+      tags:
+      - user
+      summary: Update user preferences
+      description: This can only be done by the logged in user.
+      operationId: update_user_preferences
+      parameters:
+      - name: username
+        in: path
+        description: The name of the user. Use reaper_113 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Update prefrences of a user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Preferences'
+      responses:
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.user_controller
+  /comments:
+    post:
+      tags:
+      - comments
+      summary: Add comment
+      description: This can only be done by the logged in user.
+      operationId: create_comment
+      requestBody:
+        description: Created commented object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comments'
+        required: true
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comments'
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.comments_controller
+  /comments/{commentID}:
+    get:
+      tags:
+      - comments
+      summary: Get comment by comment id
+      description: ""
+      operationId: get_comment_by_id
+      parameters:
+      - name: commentID
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comments'
+        "400":
+          description: Invalid comment ID supplied
+        "404":
+          description: Comment not found
+      x-openapi-router-controller: swagger_server.controllers.comments_controller
+    put:
+      tags:
+      - comments
+      summary: Update cooment
+      description: This can only be done by the logged in user.
+      operationId: update_comment
+      parameters:
+      - name: commentID
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: Update an existent comment
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comments'
+      responses:
+        default:
+          description: successful operation
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.comments_controller
+    delete:
+      tags:
+      - comments
+      summary: Delete user
+      description: This can only be done by the logged in user.
+      operationId: delete_comment
+      parameters:
+      - name: commentID
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          description: Invalid comment id supplied
+        "404":
+          description: Comment not found
+      security:
+      - user_auth:
+        - login:user
+      x-openapi-router-controller: swagger_server.controllers.comments_controller
+components:
+  schemas:
+    Communities:
+      required:
+      - name
+      type: object
+      properties:
+        communityID:
+          type: integer
+          format: int64
+          example: 123456
+        name:
+          type: string
+          example: askMosaic
+        description:
+          type: string
+          example: A place to ask your questions about this platform!
+        timeCreated:
+          type: string
+          format: date-time
+        displayPic:
+          type: string
+        createdBy:
+          type: integer
+          format: int64
+        subCount:
+          type: integer
+          format: int32
+          example: 32
+        admin:
+          type: integer
+          format: int64
+        isBanned:
+          type: boolean
+        isDeleted:
+          type: boolean
+      example:
+        displayPic: displayPicture
+        subCount: 32
+        isDeleted: true
+        createdBy: 0
+        name: askMosaic
+        description: A place to ask your questions about this platform!
+        admin: 6
+        timeCreated: 2000-01-23T04:56:07.000+00:00
+        isBanned: true
+        communityID: 123456
+      xml:
+        name: communities
+    Posts:
+      required:
+      - community
+      - content
+      - title
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 123456
+        title:
+          type: string
+          example: Welcome!
+        content:
+          type: string
+          example: Welcome to Mosaic
+        createdBy:
+          type: integer
+          format: int64
+        community:
+          type: integer
+          format: int64
+        timeCreated:
+          type: string
+          format: date-time
+        upvotes:
+          type: integer
+          format: int32
+        downvotes:
+          type: integer
+          format: int32
+        views:
+          type: integer
+          format: int32
+        isDeleted:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        comments:
+          type: array
+          items:
+            type: integer
+            format: int64
+      example:
+        comments:
+        - 2
+        - 2
+        upvotes: 1
+        isDeleted: true
+        createdBy: 0
+        timeCreated: 2000-01-23T04:56:07.000+00:00
+        id: 123456
+        title: Welcome!
+        community: 6
+        downvotes: 5
+        content: Welcome to Mosaic
+        views: 5
+        tags:
+        - tags
+        - tags
+      xml:
+        name: posts
+    User:
+      required:
+      - email
+      - password
+      - username
+      type: object
+      properties:
+        UserID:
+          type: integer
+          format: int64
+          example: 1012312
+        username:
+          type: string
+          example: reaper_113
+        emailAddress:
+          type: string
+          example: reaper@email.com
+        password:
+          type: string
+          example: zxcvbnm
+        timeJoined:
+          type: string
+          format: date-time
+        lastLogin:
+          type: string
+          format: date-time
+        userStatus:
+          type: integer
+          description: User Status
+          format: int32
+          example: 1
+        profilePicture:
+          type: string
+        karma:
+          type: integer
+          format: int32
+        userPreferences:
+          type: integer
+          format: int64
+      example:
+        lastLogin: 2000-01-23T04:56:07.000+00:00
+        profilePicture: profilePicture
+        karma: 0
+        emailAddress: reaper@email.com
+        password: zxcvbnm
+        userStatus: 1
+        timeJoined: 2000-01-23T04:56:07.000+00:00
+        UserID: 1012312
+        username: reaper_113
+      xml:
+        name: user
+    Votes:
+      type: object
+      properties:
+        postVoteID:
+          type: integer
+          format: int64
+        userID:
+          type: integer
+          format: int64
+        postID:
+          type: integer
+          format: int64
+        voted:
+          type: boolean
+        time:
+          type: string
+          format: date-time
+      example:
+        postID: 1
+        voted: true
+        postVoteID: 0
+        time: 2000-01-23T04:56:07.000+00:00
+        userID: 6
+      xml:
+        name: votes
+    CommentVotes:
+      type: object
+      properties:
+        commentVoteID:
+          type: integer
+          format: int64
+        userID:
+          type: integer
+          format: int64
+        commentID:
+          type: integer
+          format: int64
+        upvote:
+          type: boolean
+        time:
+          type: string
+          format: date-time
+      example:
+        upvote: true
+        commentID: 1
+        commentVoteID: 0
+        time: 2000-01-23T04:56:07.000+00:00
+        userID: 6
+      xml:
+        name: commentVotes
+    Comments:
+      required:
+      - content
+      - post
+      type: object
+      properties:
+        postID:
+          type: integer
+          format: int64
+        commentID:
+          type: integer
+          format: int64
+        content:
+          type: string
+          example: I am happy to be here!
+        userID:
+          type: integer
+          format: int64
+        parentCommentID:
+          type: integer
+          format: int64
+        timeCreated:
+          type: string
+          format: date-time
+        upvotes:
+          type: integer
+          format: int32
+        downvotes:
+          type: integer
+          format: int32
+      example:
+        postID: 0
+        upvotes: 5
+        userID: 1
+        parentCommentID: 5
+        timeCreated: 2000-01-23T04:56:07.000+00:00
+        commentID: 6
+        downvotes: 2
+        content: I am happy to be here!
+      xml:
+        name: comments
+    Notifications:
+      type: object
+      properties:
+        notificationID:
+          type: integer
+          format: int64
+        content:
+          type: string
+        UserID:
+          type: integer
+          format: int64
+        postID:
+          type: integer
+          format: int64
+        communityID:
+          type: integer
+          format: int64
+        commentID:
+          type: integer
+          format: int64
+        messageID:
+          type: integer
+          format: int64
+      example:
+        postID: 1
+        commentID: 5
+        notificationID: 0
+        communityID: 5
+        messageID: 2
+        userID: 6
+        content: content
+    PostsDb:
+      required:
+      - community
+      - content
+      - title
+      type: object
+      properties:
+        postID:
+          type: integer
+          format: int64
+          example: 123456
+        title:
+          type: string
+          example: Welcome!
+        content:
+          type: string
+          example: Welcome to Mosaic
+        createdBy:
+          type: integer
+          format: int64
+        communityID:
+          type: integer
+          format: int64
+        timeCreated:
+          type: string
+          format: date-time
+        upvotes:
+          type: integer
+          format: int32
+        downvotes:
+          type: integer
+          format: int32
+        viewCount:
+          type: integer
+          format: int32
+        isDeleted:
+          type: boolean
+        displayPic:
+          type: string
+      xml:
+        name: posts
+    Moderators:
+      type: object
+      properties:
+        moderatorID:
+          type: integer
+          format: int64
+        userID:
+          type: integer
+          format: int64
+        communityID:
+          type: integer
+          format: int64
+        timeAdded:
+          type: string
+          format: date-time
+      xml:
+        name: moderators
+    FollowUsers:
+      type: object
+      properties:
+        followID:
+          type: integer
+          format: int64
+        follower:
+          type: integer
+          format: int64
+        following:
+          type: integer
+          format: int64
+        time:
+          type: string
+          format: date-time
+      xml:
+        name: FollowUsers
+    BlockUsers:
+      type: object
+      properties:
+        blockID:
+          type: integer
+          format: int64
+        blockedUser:
+          type: integer
+          format: int64
+        blockedBy:
+          type: integer
+          format: int64
+        time:
+          type: string
+          format: date-time
+      xml:
+        name: BlockUsers
+    SavedPosts:
+      type: object
+      properties:
+        saveID:
+          type: integer
+          format: int64
+        userID:
+          type: integer
+          format: int64
+        postID:
+          type: integer
+          format: int64
+        timeSaved:
+          type: string
+          format: date-time
+      xml:
+        name: SavedPosts
+    SavedComments:
+      type: object
+      properties:
+        saveID:
+          type: integer
+          format: int64
+        userID:
+          type: integer
+          format: int64
+        commentID:
+          type: integer
+          format: int64
+        timeSaved:
+          type: string
+          format: date-time
+      xml:
+        name: SavedComments
+    History:
+      type: object
+      properties:
+        viewID:
+          type: integer
+          format: int64
+        userID:
+          type: integer
+          format: int64
+        postID:
+          type: integer
+          format: int64
+        timeViewed:
+          type: string
+          format: date-time
+      xml:
+        name: History
+    SubscribedCommunities:
+      type: object
+      properties:
+        subscriptionID:
+          type: integer
+          format: int64
+        userID:
+          type: integer
+          format: int64
+        communityID:
+          type: integer
+          format: int64
+        timeSubscribed:
+          type: string
+          format: date-time
+      xml:
+        name: SubscribedCommunities
+    Tag:
+      type: object
+      properties:
+        tagID:
+          type: integer
+          format: int64
+        communityID:
+          type: integer
+          format: int64
+        postID:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: tag
+    Messages:
+      type: object
+      properties:
+        messageID:
+          type: integer
+          format: int64
+        content:
+          type: string
+        fromUserID:
+          type: integer
+          format: int64
+        toUserID:
+          type: integer
+          format: int64
+        timeSent:
+          type: string
+          format: date-time
+      xml:
+        name: messages
+    Preferences:
+      type: object
+      properties:
+        preferenceID:
+          type: integer
+          format: int64
+        sortHome:
+          type: string
+          enum:
+          - Best
+          - New
+          - Controversial
+          - Old
+        time:
+          type: string
+          format: date-time
+        sortTrending:
+          type: string
+          enum:
+          - Best
+          - New
+          - Controversial
+          - Old
+        sortCommunities:
+          type: string
+          enum:
+          - Best
+          - New
+          - Controversial
+          - Old
+        language:
+          type: string
+          default: English
+          enum:
+          - English
+        blurNSFW:
+          type: boolean
+          default: true
+        autoplay:
+          type: boolean
+          default: true
+        darkMode:
+          type: boolean
+          default: false
+      example:
+        sortHome: Best
+        blurNSFW: true
+        language: English
+        preferenceID: 0
+        darkMode: false
+        sortCommunities: Best
+        time: 2000-01-23T04:56:07.000+00:00
+        sortTrending: Best
+        autoplay: true
+      xml:
+        name: preferences
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: '##default'
+    u_login_body:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+  parameters:
+    community_name:
+      name: community_name
+      in: path
+      description: 'The name of the community. Use askMosaic for testing. '
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    username:
+      name: username
+      in: path
+      description: The name of the user. Use reaper_113 for testing.
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    postID:
+      name: postID
+      in: path
+      description: The ID of the post
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+    commentID:
+      name: commentID
+      in: path
+      description: The ID of the comment
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+  requestBodies:
+    UserArray:
+      description: List of user object
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
+  securitySchemes:
+    user_auth:
+      type: oauth2
+      flows:
+        password:
+          tokenUrl: https://link_to_mosaic.com/oauth/authorize
+          scopes:
+            login:user: user logged in
+      x-tokenInfoFunc: swagger_server.controllers.authorization_controller.check_user_auth
+      x-scopeValidateFunc: swagger_server.controllers.authorization_controller.validate_scope_user_auth
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+      x-apikeyInfoFunc: swagger_server.controllers.authorization_controller.check_api_key
+

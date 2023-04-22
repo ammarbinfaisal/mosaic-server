@@ -6,13 +6,13 @@ import os
 from bcrypt import hashpw, gensalt, checkpw
 from flask import Flask, abort, jsonify, request, send_from_directory
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from marshmallow import ValidationError
 from jwt import encode, decode
 from PIL import Image
 
 import db
+from db import database
 import schema
 
 app = Flask(__name__)
@@ -21,9 +21,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'app/uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-database = SQLAlchemy()
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:p@localhost:3306/cop"
-database.init_app(app)
 
 secret = os.environ.get("SECRET")
 
@@ -583,10 +581,10 @@ def vote_comment(comment_id, user=None):
     vote = database.session.query(db.CommentVote).filter_by(
         comment_id=comment_id, user_id=user["id"]).first()
     if vote is None:
-        return '{"vote": 0}', 200
+        return {"vote": 0, "upvotes": comment.upvotes,  "downvotes": comment.downvotes}, 200
     elif vote.is_upvote:
-        return '{"vote": 1}', 200
-    return '{"vote": -1}', 200
+        return {"vote": 1, "upvotes": comment.upvotes,  "downvotes": comment.downvotes}, 200
+    return {"vote": -1, "upvotes": comment.upvotes,  "downvotes": comment.downvotes}, 200
 
 # ----------------------------
 # ME
@@ -688,7 +686,8 @@ def search_posts():
     if not query:
         return {"error": "bad search"}, 400
     query = f"%{query}%"
-    posts = database.session.query(db.Post).filter(or_(db.Post.title.like(query), db.Post.content.like(query))).all()
+    posts = database.session.query(db.Post).filter(
+        or_(db.Post.title.like(query), db.Post.content.like(query))).all()
     post_schema = schema.PostSchema(many=True)
     comments = database.session.query(db.Comment).filter(
         db.Comment.content.like(query)).all()
@@ -709,6 +708,7 @@ def send_static(path):
 
 
 if __name__ == "__main__":
+    database.init_app(app)
     with app.app_context():
         database.create_all()
     app.run(debug=True)

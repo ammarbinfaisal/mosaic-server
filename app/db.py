@@ -1,12 +1,16 @@
+from flask import g, current_app
 from sqlalchemy import Column, DateTime, Integer, Boolean, Text, String, ForeignKey, create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker,scoped_session, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from flask_sqlalchemy import SQLAlchemy
+
+database = SQLAlchemy()
 
 Base = declarative_base()
 
 
-class User(Base):
+class User(database.Model):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True,
                 autoincrement=True, unique=True)
@@ -22,7 +26,7 @@ class User(Base):
     user_status = Column(Integer)
 
 
-class Vote(Base):
+class Vote(database.Model):
     __tablename__ = "votes"
     id = Column(Integer, primary_key=True, index=True)
     post_id = Column(ForeignKey(
@@ -35,7 +39,7 @@ class Vote(Base):
     post = relationship("Post", foreign_keys="Vote.post_id")
 
 
-class Post(Base):
+class Post(database.Model):
     __tablename__ = "posts"
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text)
@@ -55,7 +59,7 @@ class Post(Base):
     community = relationship("Community", foreign_keys="Post.community_id")
 
 
-class Moderator(Base):
+class Moderator(database.Model):
     __tablename__ = "moderators"
     id = Column(Integer, primary_key=True, index=True)
     time = Column(DateTime, server_default=func.now())
@@ -68,7 +72,7 @@ class Moderator(Base):
         "Community", foreign_keys="Moderator.community_id")
 
 
-class History(Base):
+class History(database.Model):
     __tablename__ = "history"
     id = Column(Integer, primary_key=True, index=True)
     time = Column(DateTime, server_default=func.now())
@@ -80,7 +84,7 @@ class History(Base):
     post = relationship("Post", foreign_keys="History.post_id")
 
 
-class FollowUser(Base):
+class FollowUser(database.Model):
     __tablename__ = "follow_users"
     id = Column(Integer, primary_key=True, index=True)
     follower = Column(ForeignKey(
@@ -90,7 +94,7 @@ class FollowUser(Base):
     time = Column(DateTime, server_default=func.now())
 
 
-class Community(Base):
+class Community(database.Model):
     __tablename__ = "communities"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True)
@@ -108,7 +112,7 @@ class Community(Base):
     created_by = relationship("User", foreign_keys="Community.created_by_id")
 
 
-class Comment(Base):
+class Comment(database.Model):
     __tablename__ = "comments"
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text)
@@ -126,7 +130,7 @@ class Comment(Base):
     post = relationship("Post", foreign_keys="Comment.post_id")
 
 
-class SubscribedCommunity(Base):
+class SubscribedCommunity(database.Model):
     __tablename__ = "subscribed_communities"
     id = Column(Integer, primary_key=True, index=True)
     time = Column(DateTime, server_default=func.now())
@@ -139,7 +143,7 @@ class SubscribedCommunity(Base):
         "Community", foreign_keys="SubscribedCommunity.community_id")
 
 
-class SavedPost(Base):
+class SavedPost(database.Model):
     __tablename__ = "saved_posts"
     id = Column(Integer, primary_key=True, index=True)
     time = Column(DateTime, server_default=func.now())
@@ -151,7 +155,7 @@ class SavedPost(Base):
     post = relationship("Post", foreign_keys="SavedPost.post_id")
 
 
-class SavedComment(Base):
+class SavedComment(database.Model):
     __tablename__ = "saved_comments"
     id = Column(Integer, primary_key=True, index=True)
     time = Column(DateTime, server_default=func.now())
@@ -163,7 +167,7 @@ class SavedComment(Base):
     comment = relationship("Comment", foreign_keys="SavedComment.comment_id")
 
 
-class CommentVote(Base):
+class CommentVote(database.Model):
     __tablename__ = "comment_votes"
     id = Column(Integer, primary_key=True, index=True)
     time = Column(DateTime, server_default=func.now())
@@ -176,7 +180,7 @@ class CommentVote(Base):
     comment = relationship("Comment", foreign_keys="CommentVote.comment_id")
 
 
-class BlockedUser(Base):
+class BlockedUser(database.Model):
     __tablename__ = "blocked_users"
     id = Column(Integer, primary_key=True, index=True)
     time = Column(DateTime, server_default=func.now())
@@ -188,7 +192,7 @@ class BlockedUser(Base):
     blocked = relationship("User", foreign_keys="BlockedUser.blocked_id")
 
 
-class View(Base):
+class View(database.Model):
     __tablename__ = "views"
     id = Column(Integer, primary_key=True, index=True)
     time = Column(DateTime, server_default=func.now())
