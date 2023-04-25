@@ -649,10 +649,10 @@ def get_me_communities(user=None):
 @app.route("/me/feed", methods=["GET"])
 @authorize
 def get_me_feed(user=None):
-    communities = database.session.query(db.Community).filter_by(
-        created_by_id=user["id"]).all()
+    joined = database.session.query(db.Community).join(db.SubscribedCommunity).filter(
+        db.SubscribedCommunity.user_id == user["id"]).all()
     posts = database.session.query(db.Post).filter(
-        db.Post.community_id.in_([c.id for c in communities])).order_by(db.Post.id.desc()).limit(20).all()
+        db.Post.community_id.in_([c.id for c in joined])).order_by(db.Post.id.desc()).limit(20).all()
     posts_schema = schema.PostSchema(many=True)
     return jsonify(posts_schema.dump(posts)), 200
 
