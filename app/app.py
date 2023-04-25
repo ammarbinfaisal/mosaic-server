@@ -134,6 +134,9 @@ def register():
         schema.register_schema.load(b)
     except ValidationError as err:
         return err.messages, 400
+    b["username"] = b["username"].strip()
+    if (b["username"] == ""):
+        return {"error": "Username cannot be empty"}, 400
     user = database.session.query(db.User).filter_by(
         username=b["username"]).first()
     if user:
@@ -217,7 +220,9 @@ def create_post(user=None):
         schema.create_post_schema.load(b)
     except ValidationError as err:
         return err.messages, 400
-
+    b["title"] = b["title"].strip()
+    if (b["title"] == ""):
+        return {"error": "Title cannot be empty"}, 400
     post = db.Post(
         title=b["title"],
         content=b["content"],
@@ -256,6 +261,9 @@ def update_post(user=None):
     except ValidationError as err:
         return err.messages, 400
     post = database.session.query(db.Post).filter_by(id=b["id"]).first()
+    b["title"] = b["title"].strip()
+    if (b["title"] == ""):
+        return {"error": "Title cannot be empty"}, 400
     post.title = b["title"]
     post.content = b["content"]
     post.display_pic = b["display_pic"]
@@ -349,6 +357,9 @@ def create_community(user=None):
         schema.create_community_schema.load(b)
     except ValidationError as err:
         return err.messages, 400
+    b["name"] = b["name"].strip()
+    if len(b["name"]) == 0:
+        return {"error": "Community name cannot be empty"}, 400
     existing = database.session.query(
         db.Community).filter_by(name=b["name"]).first()
     if existing:
@@ -465,6 +476,9 @@ def update_community(user=None):
         return err.messages, 400
     community = database.session.query(db.Community).get(b["id"])
     if b["name"]:
+        b["name"] = b["name"].strip()
+        if len(b["name"]) == 0:
+            return {"error": "Community name cannot be empty"}, 400
         community.name = b["name"]
     if b["description"]:
         community.description = b["description"]
@@ -520,7 +534,7 @@ def complete_comment(user=None):
     gpt_response = openai.Completion.create(
         engine="davinci",
         prompt=b["content"],
-        max_tokens=40,
+        max_tokens=100,
         top_p=1,
         temperature=0.7,
         frequency_penalty=0.5,
@@ -668,6 +682,9 @@ def update_me(user=None):
         return err.messages, 400
     user = database.session.query(db.User).get(user["id"])
     if b["username"]:
+        b["username"] = b["username"].strip()
+        if len(b["username"])==0:
+            return {"error":"Username cannot be empty"}, 400
         user.username = b["username"]
     if b["password"]:
         user.password = hashpw(b["password"].encode("utf-8"), gensalt())
