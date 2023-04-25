@@ -502,12 +502,15 @@ def complete_comment(user=None):
     gpt_response = openai.Completion.create(
         engine="davinci",
         prompt=b["content"],
-        max_tokens=100,
-        temperature=0.6,
+        max_tokens=40,
+        top_p=1,
+        temperature=0.7,
         frequency_penalty=0.5,
+        presence_penalty=0.5,
+        stop=[".", "!", "?"]
     )
     resp = gpt_response["choices"][0]["text"]
-    # remove everything before <REPLY>
+    #remove everything before <REPLY>
     return jsonify({"completion": resp}), 200
 
 
@@ -535,11 +538,10 @@ def get_comment_parent(comment_id):
         "post": post_schema.dump(post)
     }, 200
 
-
 @app.route("/cm/<int:comment_id>/upvote", methods=["POST"])
 @authorize
 def upvote_comment(comment_id, user=None):
-    comment = database.session.query(db.Comment).first()
+    comment = database.session.query(db.Comment).filter_by(id=comment_id).first()
     if comment is None:
         return "Comment not found", 404
     vote = database.session.query(db.CommentVote).filter_by(
@@ -569,7 +571,7 @@ def upvote_comment(comment_id, user=None):
 @app.route("/cm/<int:comment_id>/downvote", methods=["POST"])
 @authorize
 def downvote_comment(comment_id, user=None):
-    comment = database.session.query(db.Comment).first()
+    comment = database.session.query(db.Comment).filter_by(id=comment_id).first()
     if comment is None:
         return "Comment not found", 404
     vote = database.session.query(db.CommentVote).filter_by(
