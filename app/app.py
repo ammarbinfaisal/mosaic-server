@@ -62,6 +62,7 @@ def authorize(f):
         return f(user=user, *args, **kws)
     return decorated_function
 
+
 def weak_authorize(f):
     @wraps(f)
     def decorated_function(*args, **kws):
@@ -527,7 +528,7 @@ def complete_comment(user=None):
         stop=[".", "!", "?"]
     )
     resp = gpt_response["choices"][0]["text"]
-    #remove everything before <REPLY>
+    # remove everything before <REPLY>
     return jsonify({"completion": resp}), 200
 
 
@@ -555,10 +556,12 @@ def get_comment_parent(comment_id):
         "post": post_schema.dump(post)
     }, 200
 
+
 @app.route("/cm/<int:comment_id>/upvote", methods=["POST"])
 @authorize
 def upvote_comment(comment_id, user=None):
-    comment = database.session.query(db.Comment).filter_by(id=comment_id).first()
+    comment = database.session.query(
+        db.Comment).filter_by(id=comment_id).first()
     if comment is None:
         return "Comment not found", 404
     vote = database.session.query(db.CommentVote).filter_by(
@@ -588,7 +591,8 @@ def upvote_comment(comment_id, user=None):
 @app.route("/cm/<int:comment_id>/downvote", methods=["POST"])
 @authorize
 def downvote_comment(comment_id, user=None):
-    comment = database.session.query(db.Comment).filter_by(id=comment_id).first()
+    comment = database.session.query(
+        db.Comment).filter_by(id=comment_id).first()
     if comment is None:
         return "Comment not found", 404
     vote = database.session.query(db.CommentVote).filter_by(
@@ -630,6 +634,16 @@ def vote_comment(comment_id, user=None):
     elif vote.is_upvote:
         return {"vote": 1, "upvotes": comment.upvotes,  "downvotes": comment.downvotes}, 200
     return {"vote": -1, "upvotes": comment.upvotes,  "downvotes": comment.downvotes}, 200
+
+
+@app.route("/cm/<int:comment_id>/info", methods=["GET"])
+def get_comment_info(comment_id):
+    comment = database.session.query(db.Comment).get(comment_id)
+    if comment is None:
+        return "Comment not found", 404
+    comment_schema = schema.CommentSchema()
+    return jsonify(comment_schema.dump(comment)), 200
+
 
 # ----------------------------
 # ME
@@ -751,7 +765,8 @@ def search_posts():
 def trending():
     posts = database.session.query(db.Post).order_by(
         db.Post.upvotes.desc()).limit(20).all()
-    posts = sorted(posts, key=lambda x: datetime.now() - x.time_created, reverse=True)
+    posts = sorted(posts, key=lambda x: datetime.now() -
+                   x.time_created, reverse=True)
     post_schema = schema.PostSchema(many=True)
     return jsonify(post_schema.dump(posts)), 200
 
