@@ -62,6 +62,23 @@ def authorize(f):
         return f(user=user, *args, **kws)
     return decorated_function
 
+def weak_authorize(f):
+    @wraps(f)
+    def decorated_function(*args, **kws):
+        if not 'Authorization' in request.headers:
+            print("no auth header")
+            abort(401)
+        user = None
+        data = request.headers['Authorization']
+        token = str.replace(str(data), 'Bearer ', '')
+        try:
+            user = decode(token, secret, algorithms=['HS256'])
+        except:
+            print("weakkk")
+
+        return f(user=user, *args, **kws)
+    return decorated_function
+
 
 def upload_file(f):
     @wraps(f)
@@ -597,13 +614,15 @@ def downvote_comment(comment_id, user=None):
 
 
 @app.route("/cm/<int:comment_id>/vote", methods=["GET"])
-@authorize
+@weak_authorize
 def vote_comment(comment_id, user=None):
     comment = database.session.query(db.Comment).get(comment_id)
     if comment is None:
         return "Comment not found", 404
-    vote = database.session.query(db.CommentVote).filter_by(
-        comment_id=comment_id, user_id=user["id"]).first()
+    vote = None
+    if user is not None:
+        vote = database.session.query(db.CommentVote).filter_by(
+            comment_id=comment_id, user_id=user["id"]).first()
     if vote is None:
         return {"vote": 0, "upvotes": comment.upvotes,  "downvotes": comment.downvotes}, 200
     elif vote.is_upvote:
