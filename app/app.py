@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import wraps
 from random import randint
 import os
@@ -489,6 +490,7 @@ def create_comment(user=None):
     database.session.commit()
     return '{"status": "OK"}', 200
 
+
 @app.route("/cm/completion", methods=["POST"])
 @authorize
 def complete_comment(user=None):
@@ -505,8 +507,9 @@ def complete_comment(user=None):
         frequency_penalty=0.5,
     )
     resp = gpt_response["choices"][0]["text"]
-    #remove everything before <REPLY>
+    # remove everything before <REPLY>
     return jsonify({"completion": resp}), 200
+
 
 @app.route("/cm/<int:comment_id>/replies", methods=["GET"])
 def get_comment_replies(comment_id):
@@ -717,6 +720,19 @@ def search_posts():
         "posts": post_schema.dump(posts),
         "comments": comment_schema.dump(comments),
     }), 200
+
+# ----------------------------
+# trending
+# ----------------------------
+
+
+@app.route("/trending", methods=["GET"])
+def trending():
+    posts = database.session.query(db.Post).order_by(
+        db.Post.upvotes.desc()).limit(20).all()
+    posts = sorted(posts, key=lambda x: datetime.now() - x.time_created, reverse=True)
+    post_schema = schema.PostSchema(many=True)
+    return jsonify(post_schema.dump(posts)), 200
 
 # ----------------------------
 # STATIC
