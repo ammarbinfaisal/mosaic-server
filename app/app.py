@@ -10,6 +10,7 @@ from sqlalchemy import or_
 from marshmallow import ValidationError
 from jwt import encode, decode
 from PIL import Image
+import openai
 
 import db
 from db import database
@@ -24,6 +25,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:p@localhost:3306/cop"
 
 secret = os.environ.get("SECRET")
+openai.api_key = os.environ.get("OPENAI_API_KEY")
+openai.Model.retrieve("text-davinci-003")
 
 # cron = Scheduler(daemon=True)
 # cron.start()
@@ -486,6 +489,24 @@ def create_comment(user=None):
     database.session.commit()
     return '{"status": "OK"}', 200
 
+@app.route("/cm/completion", methods=["POST"])
+@authorize
+def complete_comment(user=None):
+    b = request.get_json()
+    try:
+        schema.create_comment_schema.load(b)
+    except ValidationError as err:
+        return err.messages, 400
+    gpt_response = openai.Completion.create(
+        engine="davinci",
+        prompt=b["content"],
+        max_tokens=100,
+        temperature=0.6,
+        frequency_penalty=0.5,
+    )
+    resp = gpt_response["choices"][0]["text"]
+    #remove everything before <REPLY>
+    return jsonify({"completion": resp}), 200
 
 @app.route("/cm/<int:comment_id>/replies", methods=["GET"])
 def get_comment_replies(comment_id):

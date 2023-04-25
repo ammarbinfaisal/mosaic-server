@@ -7,3 +7,4 @@ bcrypt
 pyjwt
 marshmallow-sqlalchemy
 PIL
+openai
