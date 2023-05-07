@@ -18,11 +18,8 @@ class User(database.Model):
     email = Column(Text)
     password = Column(Text)
     display_pic = Column(Text)
-
     last_login = Column(DateTime, server_default=func.now())
     time_joined = Column(DateTime, server_default=func.now())
-
-    # user_preference = Column(Integer)
     user_status = Column(Integer)
 
 
@@ -46,7 +43,6 @@ class Post(database.Model):
     display_pic = Column(Text)
     downvotes = Column(Integer, default=0)
     is_deleted = Column(Boolean)
-    post_id = Column(Integer)
     time_created = Column(DateTime, server_default=func.now())
     title = Column(Text)
     upvotes = Column(Integer, default=0)
@@ -57,41 +53,6 @@ class Post(database.Model):
         "communities.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", foreign_keys="Post.user_id")
     community = relationship("Community", foreign_keys="Post.community_id")
-
-
-class Moderator(database.Model):
-    __tablename__ = "moderators"
-    id = Column(Integer, primary_key=True, index=True)
-    time = Column(DateTime, server_default=func.now())
-    user_id = Column(ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
-    community_id = Column(ForeignKey(
-        "communities.id", ondelete="CASCADE"), nullable=False)
-    user = relationship("User", foreign_keys="Moderator.user_id")
-    community = relationship(
-        "Community", foreign_keys="Moderator.community_id")
-
-
-class History(database.Model):
-    __tablename__ = "history"
-    id = Column(Integer, primary_key=True, index=True)
-    time = Column(DateTime, server_default=func.now())
-    user_id = Column(ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
-    post_id = Column(ForeignKey(
-        "posts.id", ondelete="CASCADE"), nullable=False)
-    user = relationship("User", foreign_keys="History.user_id")
-    post = relationship("Post", foreign_keys="History.post_id")
-
-
-class FollowUser(database.Model):
-    __tablename__ = "follow_users"
-    id = Column(Integer, primary_key=True, index=True)
-    follower = Column(ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
-    following = Column(ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
-    time = Column(DateTime, server_default=func.now())
 
 
 class Community(database.Model):
@@ -143,30 +104,6 @@ class SubscribedCommunity(database.Model):
         "Community", foreign_keys="SubscribedCommunity.community_id")
 
 
-class SavedPost(database.Model):
-    __tablename__ = "saved_posts"
-    id = Column(Integer, primary_key=True, index=True)
-    time = Column(DateTime, server_default=func.now())
-    user_id = Column(ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
-    post_id = Column(ForeignKey(
-        "posts.id", ondelete="CASCADE"), nullable=False)
-    user = relationship("User", foreign_keys="SavedPost.user_id")
-    post = relationship("Post", foreign_keys="SavedPost.post_id")
-
-
-class SavedComment(database.Model):
-    __tablename__ = "saved_comments"
-    id = Column(Integer, primary_key=True, index=True)
-    time = Column(DateTime, server_default=func.now())
-    user_id = Column(ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
-    comment_id = Column(ForeignKey(
-        "comments.id", ondelete="CASCADE"), nullable=False)
-    user = relationship("User", foreign_keys="SavedComment.user_id")
-    comment = relationship("Comment", foreign_keys="SavedComment.comment_id")
-
-
 class CommentVote(database.Model):
     __tablename__ = "comment_votes"
     id = Column(Integer, primary_key=True, index=True)
@@ -178,27 +115,3 @@ class CommentVote(database.Model):
         "comments.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", foreign_keys="CommentVote.user_id")
     comment = relationship("Comment", foreign_keys="CommentVote.comment_id")
-
-
-class BlockedUser(database.Model):
-    __tablename__ = "blocked_users"
-    id = Column(Integer, primary_key=True, index=True)
-    time = Column(DateTime, server_default=func.now())
-    blocker_id = Column(ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
-    blocked_id = Column(ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
-    blocker = relationship("User", foreign_keys="BlockedUser.blocker_id")
-    blocked = relationship("User", foreign_keys="BlockedUser.blocked_id")
-
-
-class View(database.Model):
-    __tablename__ = "views"
-    id = Column(Integer, primary_key=True, index=True)
-    time = Column(DateTime, server_default=func.now())
-    user_id = Column(ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
-    post_id = Column(ForeignKey(
-        "posts.id", ondelete="CASCADE"), nullable=False)
-    user = relationship("User", foreign_keys="View.user_id")
-    post = relationship("Post", foreign_keys="View.post_id")

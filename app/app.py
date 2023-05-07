@@ -23,7 +23,10 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'app/uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:p@localhost:3306/cop"
+dbuser = os.environ.get("DBUSER")
+dbpass = os.environ.get("DBPASS")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://"+dbuser+":"+dbpass+"@localhost:3306/cop"
 
 secret = os.environ.get("SECRET")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -223,6 +226,10 @@ def create_post(user=None):
     b["title"] = b["title"].strip()
     if (b["title"] == ""):
         return {"error": "Title cannot be empty"}, 400
+    subbed  = database.session.query(db.SubscribedCommunity).filter_by(
+        user_id=user["id"], community_id=b["id"]).first()
+    if subbed is None:
+        return {"error": "You are not subscribed to this community"}, 400
     post = db.Post(
         title=b["title"],
         content=b["content"],
@@ -261,12 +268,19 @@ def update_post(user=None):
     except ValidationError as err:
         return err.messages, 400
     post = database.session.query(db.Post).filter_by(id=b["id"]).first()
+    if post is None:
+        return {"error": "Post not found"}, 404
+    subbed = database.session.query(db.SubscribedCommunity).filter_by(
+        user_id=user["id"], community_id=post.community_id).first()
+    if subbed is None:
+        return {"error": "You are not subscribed to this community"}, 400
+  
     b["title"] = b["title"].strip()
     if (b["title"] == ""):
         return {"error": "Title cannot be empty"}, 400
     post.title = b["title"]
     post.content = b["content"]
-    post.display_pic = b["display_pic"]
+    post.display_pic = b["display_pic"] if "display_pic" in b else None
     database.session.commit()
     return '{"status": "OK"}', 200
 
@@ -342,6 +356,18 @@ def get_post_vote(post_id, user=None):
         return '{"vote": 1}', 200
     else:
         return '{"vote": -1}', 200
+    
+@app.route("/p/<int:post_id>/delete", methods=["POST"])
+@authorize
+def delete_post(post_id, user=None):
+    post = database.session.query(db.Post).filter_by(id=post_id).first()
+    if post is None:
+        return "Post not found", 404
+    if post.user_id != user["id"]:
+        return "Unauthorized", 401
+    database.session.delete(post)
+    database.session.commit()
+    return '{"status": "OK"}', 200
 
 
 # ----------------------------
@@ -372,10 +398,8 @@ def create_community(user=None):
     database.session.commit()
     subscribed = db.SubscribedCommunity(
         user_id=user["id"], community_id=community.id)
-    moderator = db.Moderator(user_id=user["id"], community_id=community.id)
     database.session.add(subscribed)
     database.session.commit()
-    database.session.add(moderator)
     database.session.commit()
     return '{"status": "OK"}', 200
 
@@ -423,9 +447,13 @@ def join_community(user=None):
         schema.join_community_schema.load(b)
     except ValidationError as err:
         return err.messages, 400
-    community = database.session.query(db.Community)
+    community = database.session.query(db.Community).get(b["id"])
     if community is None:
         return {"error": "Community not found"}, 404
+    already_subscribed = database.session.query(db.SubscribedCommunity).filter_by(
+        user_id=user["id"], community_id=b["id"]).first()
+    if already_subscribed is not None:
+        return {"error": "Already subscribed"}, 400
     subscribed = db.SubscribedCommunity(
         user_id=user["id"], community_id=b["id"])
     database.session.add(subscribed)
@@ -441,51 +469,17 @@ def leave_community(user=None):
         schema.join_community_schema.load(b)
     except ValidationError as err:
         return err.messages, 400
-    community = database.session.query(db.Community)
+    community = database.session.query(db.Community).get(b["id"])
     if community is None:
         return {"error": "Community not found"}, 404
     subscribed = database.session.query(db.SubscribedCommunity).filter_by(
         user_id=user["id"], community_id=b["id"]).first()
+    if subscribed is None:
+        return {"error": "Not subscribed"}, 400
     database.session.delete(subscribed)
-    return '{"status": "OK"}', 200
-
-
-@app.route("/c/pic", methods=["PUT"])
-@authorize
-@upload_file
-def update_community_pic(user=None, filename=None):
-    b = request.get_json()
-    try:
-        schema.update_community_pic_schema.load(b)
-    except ValidationError as err:
-        return err.messages, 400
-    community = database.session.query(db.Community).filter_by(
-        id=b["id"]).first()
-    community.display_pic = f"/static/{filename}"
     database.session.commit()
     return '{"status": "OK"}', 200
 
-
-@app.route("/c/update", methods=["POST"])
-@authorize
-def update_community(user=None):
-    b = request.get_json()
-    try:
-        schema.update_community_schema.load(b)
-    except ValidationError as err:
-        return err.messages, 400
-    community = database.session.query(db.Community).get(b["id"])
-    if b["name"]:
-        b["name"] = b["name"].strip()
-        if len(b["name"]) == 0:
-            return {"error": "Community name cannot be empty"}, 400
-        community.name = b["name"]
-    if b["description"]:
-        community.description = b["description"]
-    if b["display_pic"]:
-        community.display_pic = b["display_pic"]
-    database.session.commit()
-    return '{"status": "OK"}', 200
 
 
 @app.route("/c/<int:community_id>/posts/<int:pagenum>", methods=["GET"])
@@ -508,6 +502,11 @@ def get_community_posts(community_id, pagenum):
 @authorize
 def create_comment(user=None):
     b = request.get_json()
+    if not ("post" in b) :
+        if not ("parent" in b):
+            return {"error": "Post or parent comment not specified"}, 400
+        par = database.session.query(db.Comment).get(b["parent"])
+        b["post"] = par.post_id
     try:
         schema.create_comment_schema.load(b)
     except ValidationError as err:
@@ -681,12 +680,12 @@ def update_me(user=None):
     except ValidationError as err:
         return err.messages, 400
     user = database.session.query(db.User).get(user["id"])
-    if b["username"]:
+    if "username" in b and b["username"]:
         b["username"] = b["username"].strip()
         if len(b["username"])==0:
             return {"error":"Username cannot be empty"}, 400
         user.username = b["username"]
-    if b["password"]:
+    if "password" in b and b["password"]:
         user.password = hashpw(b["password"].encode("utf-8"), gensalt())
     database.session.commit()
     return '{"status": "OK"}', 200
@@ -796,9 +795,15 @@ def trending():
 def send_static(path):
     return send_from_directory("uploads", path)
 
+def create_app() :
+    database.init_app(app)
+    return app
+
+
 
 if __name__ == "__main__":
     database.init_app(app)
     with app.app_context():
         database.create_all()
-    app.run(debug=True)
+    app.run(host='0.0.0.0',debug=True)
+
