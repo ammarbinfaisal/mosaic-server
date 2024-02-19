@@ -11,4 +11,4 @@
 - `export DBUSER=<your db user>`
 - `export DBPASS=<your db password>`
 - `cd app`
-- `../venv/bin/gunicorn app:main`
+- `python app/app.py`
