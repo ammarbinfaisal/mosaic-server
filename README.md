@@ -2,7 +2,7 @@
 
 ## Setup
 
-- Clone the [client](https://github.com/ammarbinfaisal/redditish-client)
+- Clone the [client](https://github.com/ammarbinfaisal/mosaic-client)
 - Install the dependencies with `pip install -r requirements.txt`
 - Setup a mysql database
 
