@@ -1,4 +1,6 @@
-# redditish server
+# Mosaic
+
+a reddit clone
 
 ## Setup
 
