@@ -29,8 +29,6 @@ dbpass = os.environ.get("DBPASS")
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://"+dbuser+":"+dbpass+"@localhost:3306/cop"
 
 secret = os.environ.get("SECRET")
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-openai.Model.retrieve("text-davinci-003")
 
 # cron = Scheduler(daemon=True)
 # cron.start()
@@ -530,19 +528,7 @@ def complete_comment(user=None):
         schema.create_comment_schema.load(b)
     except ValidationError as err:
         return err.messages, 400
-    gpt_response = openai.Completion.create(
-        engine="davinci",
-        prompt=b["content"],
-        max_tokens=100,
-        top_p=1,
-        temperature=0.7,
-        frequency_penalty=0.5,
-        presence_penalty=0.5,
-        stop=[".", "!", "?"]
-    )
-    resp = gpt_response["choices"][0]["text"]
-    # remove everything before <REPLY>
-    return jsonify({"completion": resp}), 200
+    return b["content"]
 
 
 @app.route("/cm/<int:comment_id>/replies", methods=["GET"])
@@ -799,11 +785,11 @@ def create_app() :
     database.init_app(app)
     return app
 
-
-
-if __name__ == "__main__":
+def main(debug=False):
     database.init_app(app)
     with app.app_context():
         database.create_all()
-    app.run(host='0.0.0.0',debug=True)
+    app.run(host='0.0.0.0', debug=debug)
 
+if __name__ == "__main__":
+    main(debug=True)
