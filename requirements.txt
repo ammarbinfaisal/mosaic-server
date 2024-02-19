@@ -2,9 +2,10 @@ Flask
 flask-cors
 pymysql
 sqlalchemy
+flask_sqlalchemy
 marshmallow
 bcrypt
 pyjwt
 marshmallow-sqlalchemy
 Pillow
-openai
+cryptography
