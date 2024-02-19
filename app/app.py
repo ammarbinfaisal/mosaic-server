@@ -11,24 +11,22 @@ from sqlalchemy import or_
 from marshmallow import ValidationError
 from jwt import encode, decode
 from PIL import Image
-import openai
 
 import db
 from db import database
 import schema
 
 app = Flask(__name__)
-cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'app/uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 dbuser = os.environ.get("DBUSER")
 dbpass = os.environ.get("DBPASS")
+secret = os.environ.get("SECRET")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://"+dbuser+":"+dbpass+"@localhost:3306/cop"
-
-secret = os.environ.get("SECRET")
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 # cron = Scheduler(daemon=True)
 # cron.start()
@@ -217,6 +215,7 @@ def get_user_comments(user_id, pagenum):
 @authorize
 def create_post(user=None):
     b = request.get_json()
+    print(user)
     try:
         schema.create_post_schema.load(b)
     except ValidationError as err:
@@ -225,7 +224,7 @@ def create_post(user=None):
     if (b["title"] == ""):
         return {"error": "Title cannot be empty"}, 400
     subbed  = database.session.query(db.SubscribedCommunity).filter_by(
-        user_id=user["id"], community_id=b["id"]).first()
+        user_id=user["id"], community_id=b["community_id"]).first()
     if subbed is None:
         return {"error": "You are not subscribed to this community"}, 400
     post = db.Post(
