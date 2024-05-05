@@ -25,6 +25,10 @@ dbuser = os.environ.get("DBUSER")
 dbpass = os.environ.get("DBPASS")
 secret = os.environ.get("SECRET")
 
+if not dbuser or not dbpass or not secret:
+    print("Please set DBUSER, DBPASS and SECRET environment variables")
+    exit(1)
+
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://"+dbuser+":"+dbpass+"@localhost:3306/cop"
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
