@@ -792,7 +792,7 @@ def main(debug=False):
     database.init_app(app)
     with app.app_context():
         database.create_all()
-    app.run(host='0.0.0.0', debug=debug)
+    app.run(host='0.0.0.0', debug=debug, port=1337)
 
 if __name__ == "__main__":
     main(debug=True)
