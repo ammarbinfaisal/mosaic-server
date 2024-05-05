@@ -115,3 +115,8 @@ class CommentVote(database.Model):
         "comments.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", foreign_keys="CommentVote.user_id")
     comment = relationship("Comment", foreign_keys="CommentVote.comment_id")
+
+def drop_all():
+    database.drop_all()
+    database.create_all()
+    print('Database reset')
